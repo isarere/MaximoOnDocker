@@ -12,8 +12,8 @@ services:
     hostname: database
     environment:
       - ORACLE_PWD=Smartway1
-    volumes:
-      - ./oracle-db/data:/opt/oracle/oradata
+    #volumes:
+      #- ./oracle-db/data:/opt/oracle/oradata
       #- ./oracle-db/setup_scripts:/opt/oracle/scripts/setup
     healthcheck:
       test: ["CMD", "/opt/oracle/healthcheck.sh"]
@@ -33,6 +33,7 @@ services:
       - default
     ports:
       - '9080:9080'
+      - '7777:7777'
     environment:
       - MXE_DB_URL=jdbc:oracle:thin:@database:1521/freepdb1
       - MXE_DB_SCHEMAOWNER=maximo
@@ -40,6 +41,7 @@ services:
       - MXE_DB_USER=maximo
       - MXE_DB_PASSWORD=maximo
       - MAXIMO_DATAFILE=maxdemo
+      - JVM_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7777"
     volumes:
       - ./doclinks:/opt/IBM/doclinks
   
