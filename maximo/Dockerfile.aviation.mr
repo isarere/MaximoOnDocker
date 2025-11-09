@@ -133,7 +133,8 @@ RUN ./maximo-all.sh
 
 RUN echo "-Xmx8192m" >> /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server/jvm.options
 
-FROM websphere-liberty:24.0.0.8-full-java8-ibmjava
+FROM websphere-liberty:25.0.0.11-full-java17-openj9
+# FROM cp.icr.io/cp/manage/ubi-wlp-manage@sha256:cf48c0ecbdc53754f4e9bfc13dc36eae1ea78670429113d7fd564cdb2c9cc20d
 
 COPY --chown=1001:0 --from=BASE /opt/IBM /opt/IBM/
 COPY --chown=1001:0 --from=BASE /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server /config/
@@ -141,6 +142,13 @@ COPY --chown=1001:0 update-maximoproperties.sh /opt/IBM
 COPY --chown=1001:0 updatedb-needed.sh /opt/IBM
 COPY --chown=1001:0 docker-server.sh /opt/ibm/helpers/runtime/
 COPY --chown=1001:0 server-custom.xml /config
+
+RUN rm -rf /opt/IBM/SMP/maximo/tools/java
+
+COPY --chown=1001:0 --from=BASE /opt/ibm/java /opt/IBM/SMP/maximo/tools/java
+RUN rm -f /opt/IBM/SMP/maximo/tools/java/jre
+RUN ln -s /opt/IBM/SMP/maximo/tools/java /opt/IBM/SMP/maximo/tools/java/jre
+# COPY /opt/IBM/SMP/maximo/tools/java /opt/IBM/SMP/maximo/tools/java/jre
 
 RUN chmod a+x /opt/IBM/update-maximoproperties.sh
 # Fix out of memory issue during maximo boot process

@@ -27,7 +27,7 @@ services:
     build:
       context: './maximo'
       dockerfile: Dockerfile.aviation.mr
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       database:
         condition: service_healthy
