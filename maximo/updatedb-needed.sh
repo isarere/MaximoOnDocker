@@ -1,5 +1,18 @@
 #!/bin/bash
-
+install customized SMP Maximo product extensions
+custmo_archive_dir="/config/customization_archives"
+if [ -d "$custmo_archive_dir" ] && [ "$(ls -A $custmo_archive_dir)" ]; then
+    cd /opt/IBM/SMP/maximo
+    echo "Found customization archive files in $custmo_archive_dir"
+    for f in $custmo_archive_dir/*.zip; do
+        if [ -f "$f" ]; then
+            echo "Installing customization archive file: $f"
+            /opt/IBM/SMP/maximo/tools/java/bin/jar -vxf "$f" 
+        fi
+    done
+else
+    echo "No customization archive files found in $custmo_archive_dir"
+fi
 
 echo "Processing all product files"
 currentworkdir=$(pwd)

@@ -132,6 +132,7 @@ WORKDIR /opt/IBM/SMP/maximo/deployment/was-liberty-default
 RUN ./maximo-all.sh
 
 RUN echo "-Xmx8192m" >> /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server/jvm.options
+RUN echo "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7777" >> /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server/jvm.options
 
 FROM websphere-liberty:25.0.0.11-full-java17-openj9
 # FROM cp.icr.io/cp/manage/ubi-wlp-manage@sha256:cf48c0ecbdc53754f4e9bfc13dc36eae1ea78670429113d7fd564cdb2c9cc20d
@@ -169,6 +170,7 @@ RUN mv /config/apps/maximo-all.ear/mboweb.war /config/apps/maximo-all.ear/mboweb
 RUN mv /config/apps/maximo-all.ear/meaweb.war /config/apps/maximo-all.ear/meaweb.war.zip
 RUN mv /config/apps/maximo-all.ear/properties.jar /config/apps/maximo-all.ear/properties.jar.zip
 RUN mv /config/apps/maximo-all.ear/mboejb.jar /config/apps/maximo-all.ear/mboejb.jar.zip
+RUN mv /config/apps/maximo-all.ear/businessobjects.jar /config/apps/maximo-all.ear/businessobjects.jar.zip
 
 RUN \
 mkdir /config/apps/maximo-all.ear/maximouiweb.war &&\
@@ -176,7 +178,8 @@ mkdir /config/apps/maximo-all.ear/maxrestweb.war &&\
 mkdir /config/apps/maximo-all.ear/mboweb.war &&\
 mkdir /config/apps/maximo-all.ear/meaweb.war &&\
 mkdir /config/apps/maximo-all.ear/properties.jar &&\
-mkdir /config/apps/maximo-all.ear/mboejb.jar
+mkdir /config/apps/maximo-all.ear/mboejb.jar &&\
+mkdir /config/apps/maximo-all.ear/businessobjects.jar
 
 WORKDIR /config/apps/maximo-all.ear/maximouiweb.war
 RUN /opt/IBM/SMP/maximo/tools/java/bin/jar -vxf /config/apps/maximo-all.ear/maximouiweb.war.zip
@@ -191,6 +194,8 @@ WORKDIR /config/apps/maximo-all.ear/properties.jar
 RUN /opt/IBM/SMP/maximo/tools/java/bin/jar -vxf /config/apps/maximo-all.ear/properties.jar.zip
 WORKDIR /config/apps/maximo-all.ear/mboejb.jar
 RUN /opt/IBM/SMP/maximo/tools/java/bin/jar -vxf /config/apps/maximo-all.ear/mboejb.jar.zip
+WORKDIR /config/apps/maximo-all.ear/businessobjects.jar
+RUN /opt/IBM/SMP/maximo/tools/java/bin/jar -vxf /config/apps/maximo-all.ear/businessobjects.jar.zip
 
 RUN\
   rm /config/apps/maximo-all.ear.zip &&\
@@ -199,7 +204,8 @@ RUN\
   rm /config/apps/maximo-all.ear/mboweb.war.zip &&\
   rm /config/apps/maximo-all.ear/meaweb.war.zip &&\
   rm /config/apps/maximo-all.ear/properties.jar.zip &&\
-  rm /config/apps/maximo-all.ear/mboejb.jar.zip
+  rm /config/apps/maximo-all.ear/mboejb.jar.zip &&\
+  rm /config/apps/maximo-all.ear/businessobjects.jar.zip
 
 WORKDIR /config
 #RUN sed -i -e "s/\(mxe.db.schemaowner\)=\(.*\)/\1=$MXE_DB_SCHEMAOWNER/g" /opt/IBM/SMP/maximo/applications/maximo/properties/maximo.properties
