@@ -14,6 +14,9 @@ else
     echo "No customization archive files found in $custmo_archive_dir"
 fi
 
+cp -Rf /opt/IBM/SMP/maximo/applications/maximo/businessobjects/classes/* /config/apps/maximo-all.ear/businessobjects.jar/
+cp -Rf /opt/IBM/SMP/maximo/applications/maximo/maximouiweb/webmodule/WEB-INF/classes/* /config/apps/maximo-all.ear/maximouiweb.war/WEB-INF/classes/
+
 echo "Processing all product files"
 currentworkdir=$(pwd)
 cd /opt/IBM/SMP/maximo/tools/maximo/internal
