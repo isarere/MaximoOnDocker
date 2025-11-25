@@ -43,10 +43,13 @@ services:
       - MXE_DB_USER=maximo
       - MXE_DB_PASSWORD=maximo
       - MAXIMO_DATAFILE=maxdemo
+      # - SEC_TLS_TRUSTDEFAULTCERTS=true
+      - OSM_TRUSTSTORE_PASSWORD=password1
       #- JVM_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7777"
     volumes:
       - ./doclinks:/opt/IBM/doclinks
       - ./customization_archives:/config/customization_archives
+      - ./certificatmgr:/config/certificatmgr
   
   bdi:
     container_name: bdi

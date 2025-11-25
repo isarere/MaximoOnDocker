@@ -17,6 +17,31 @@ fi
 cp -Rf /opt/IBM/SMP/maximo/applications/maximo/businessobjects/classes/* /config/apps/maximo-all.ear/businessobjects.jar/
 cp -Rf /opt/IBM/SMP/maximo/applications/maximo/maximouiweb/webmodule/WEB-INF/classes/* /config/apps/maximo-all.ear/maximouiweb.war/WEB-INF/classes/
 
+echo "import certs"
+certificatmgr_dir="/config/certificatmgr"
+truststore_path="/config/trust.p12"
+for file in "$certificatmgr_dir"/*.crt; do
+    alias=$(basename "$file" .crt)
+
+    if keytool -list -alias "$alias" \
+        -keystore $truststore_path \
+        -storepass $OSM_TRUSTSTORE_PASSWORD >/dev/null 2>&1; then
+        
+        echo "Skipping $alias (already in truststore)"
+    else
+        echo "Importing $alias"
+        keytool -importcert \
+            -file "$file" \
+            -alias "$alias" \
+            -keystore $truststore_path \
+            -storetype PKCS12 \
+            -storepass $OSM_TRUSTSTORE_PASSWORD \
+            -noprompt
+        echo "$alias imported"
+    fi
+done
+
+
 echo "Processing all product files"
 currentworkdir=$(pwd)
 cd /opt/IBM/SMP/maximo/tools/maximo/internal
