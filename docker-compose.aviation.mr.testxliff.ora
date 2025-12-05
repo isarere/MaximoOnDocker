@@ -1,0 +1,72 @@
+version: "3"
+services:
+  database:
+    container_name: database
+    build: './oracle-db'
+    #image: 'container-registry.oracle.com/database/free:latest'
+    restart: unless-stopped
+    networks:
+      - default
+    ports:
+      - '1521:1521'
+    hostname: database
+    environment:
+      - ORACLE_PWD=Smartway1
+    volumes:
+      - ./oracle-db/data_testxliff:/opt/oracle/oradata
+      #- ./oracle-db/setup_scripts:/opt/oracle/scripts/setup
+    healthcheck:
+      test: ["CMD", "/opt/oracle/healthcheck.sh"]
+      start_period: 60s
+      interval: 30s
+      timeout: 10s
+      retries: 100
+
+  maximo:
+    container_name: maximo
+    build:
+      context: './maximo'
+      dockerfile: Dockerfile.aviation.mr
+    restart: "no"
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - default
+    ports:
+      - '9080:9080'
+      - '7777:7777'
+    environment:
+      - MXE_DB_URL=jdbc:oracle:thin:@database:1521/freepdb1
+      - MXE_DB_SCHEMAOWNER=maximo
+      - MXE_DB_DRIVER=oracle.jdbc.driver.OracleDriver
+      - MXE_DB_USER=maximo
+      - MXE_DB_PASSWORD=maximo
+      - MAXIMO_DATAFILE=
+      # - SEC_TLS_TRUSTDEFAULTCERTS=true
+      - OSM_TRUSTSTORE_PASSWORD=password1
+      #- JVM_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:7777"
+    volumes:
+      - ./doclinks:/opt/IBM/doclinks
+      - ./customization_archives:/config/customization_archives
+      - ./certificatmgr:/config/certificatmgr
+  
+  bdi:
+    container_name: bdi
+    hostname: bdi
+    image: cp.icr.io/cp/manage/bdi@sha256:fdd669e4fdbde39c5e80efe5ff700515f8a7317e5b971ad51c3635d5347a7749
+    restart: unless-stopped
+    depends_on:
+      database:
+        condition: service_healthy
+    networks:
+      - default
+    ports:
+      - '9081:9080'
+    environment:
+      - BDI_LOG_LEVEL=INFO
+      - BDI_XDB_CONNECT=jdbc:oracle:thin:@database:1521/freepdb1
+      - BDI_XDB_SCHEMA_NAME=maximo
+      - BDI_XDB_USER=maximo
+      - BDI_XDB_PASSWORD=maximo
+      - BDI_HOME=/opt/was/liberty/wlp/usr/shared/resources
