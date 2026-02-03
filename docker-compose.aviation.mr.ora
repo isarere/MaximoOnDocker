@@ -51,25 +51,25 @@ services:
       - ./customization_archives:/config/customization_archives
       - ./certificatmgr:/config/certificatmgr
   
-  bdi:
-    container_name: bdi
-    hostname: bdi
-    image: cp.icr.io/cp/manage/bdi@sha256:fdd669e4fdbde39c5e80efe5ff700515f8a7317e5b971ad51c3635d5347a7749
-    restart: unless-stopped
-    depends_on:
-      database:
-        condition: service_healthy
-    networks:
-      - default
-    ports:
-      - '9081:9080'
-    environment:
-      - BDI_LOG_LEVEL=INFO
-      - BDI_XDB_CONNECT=jdbc:oracle:thin:@database:1521/freepdb1
-      - BDI_XDB_SCHEMA_NAME=maximo
-      - BDI_XDB_USER=maximo
-      - BDI_XDB_PASSWORD=maximo
-      - BDI_HOME=/opt/was/liberty/wlp/usr/shared/resources
+  # bdi:
+  #   container_name: bdi
+  #   hostname: bdi
+  #   image: cp.icr.io/cp/manage/bdi@sha256:fdd669e4fdbde39c5e80efe5ff700515f8a7317e5b971ad51c3635d5347a7749
+  #   restart: unless-stopped
+  #   depends_on:
+  #     database:
+  #       condition: service_healthy
+  #   networks:
+  #     - default
+  #   ports:
+  #     - '9081:9080'
+  #   environment:
+  #     - BDI_LOG_LEVEL=INFO
+  #     - BDI_XDB_CONNECT=jdbc:oracle:thin:@database:1521/freepdb1
+  #     - BDI_XDB_SCHEMA_NAME=maximo
+  #     - BDI_XDB_USER=maximo
+  #     - BDI_XDB_PASSWORD=maximo
+  #     - BDI_HOME=/opt/was/liberty/wlp/usr/shared/resources
  
   kafka:
     image: apache/kafka:latest
