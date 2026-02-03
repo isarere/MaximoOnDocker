@@ -1,10 +1,10 @@
-FROM cp.icr.io/cp/manage/extension-acm@sha256:c4a36022d8b6508dcd49908d229f14dd34552ad2d16e09a612b13aff34e28cfc AS ACM
-FROM cp.icr.io/cp/manage/extension-serviceprovider@sha256:055e9d26797d33119aef56b0e5314e3821c3ce897512083620e89b65a68c1995 AS SERVICEPROVIDER
-FROM cp.icr.io/cp/manage/extension-hse@sha256:7bf8b5b1f404655c7dd1d9a8e9ef35af2b30edd4a94fba667b10662cc7870932 AS HSE
-FROM cp.icr.io/cp/manage/extension-transportation@sha256:d44ce0a1cde2e7005e9cd41e043e56a9a1e5bb17255d6e097ad90545b0b50738 AS TRANSPORTATION
-FROM cp.icr.io/cp/manage/extension-aviation@sha256:03ab387e97ca947433277fd001fb662578b03eb49af5c2445e562107854919c5 AS AVIATION
-FROM cp.icr.io/cp/manage/extension-health@sha256:cdd99dff0ebc6d5282c052c1d1fd9b4e1cce11ec2142b27637ee905ce390156c AS HEALTH
-FROM cp.icr.io/cp/manage/manageadmin@sha256:7579dd3dc3761545e7ce6f1c4c9780b0bffaa5160b5639c55f7650a5a1842634 AS BASE
+FROM cp.icr.io/cp/manage/extension-acm@sha256:41f2630dce7f7085f3e947f7bc9e88a683ad48529f74cbef40fe1c0d3040fab9 AS ACM
+FROM cp.icr.io/cp/manage/extension-serviceprovider@sha256:0208411d76cf669263a08c90f2009457e75ba52a8bf5ace7eac430972ccd91e9 AS SERVICEPROVIDER
+FROM cp.icr.io/cp/manage/extension-hse@sha256:16eaba8ea70a147734efd016438a5fb3fd8d54f741b38c092dc24621a72208fe AS HSE
+FROM cp.icr.io/cp/manage/extension-transportation@sha256:d170f648b2b90c8b8213bb0ceaefac10a74e92b77e8609267e5a952a30173e8d AS TRANSPORTATION
+FROM cp.icr.io/cp/manage/extension-aviation@sha256:0c274c3753e469f201e6b08969cd04bb79896ae58a9fd73fe223f5d63b4d5f91 AS AVIATION
+FROM cp.icr.io/cp/manage/extension-health@sha256:b948a96e7be3bf814c0231d421a3fd4307caa2ec3221a6f56bde192137412682 AS HEALTH
+FROM cp.icr.io/cp/manage/manageadmin@sha256:61a976e7012bab63c29b43a0e73a816583580e82e0b0f959463e78d8347a15c7 AS BASE
 
 
 WORKDIR /opt/IBM/SMP/maximo
