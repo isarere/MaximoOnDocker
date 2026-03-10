@@ -32,8 +32,6 @@ services:
     depends_on:
       database:
         condition: service_healthy
-    networks:
-      - default
     ports:
       - '9080:9080'
       - '7777:7777'
@@ -51,10 +49,12 @@ services:
       - ./doclinks:/opt/IBM/doclinks
       - ./customization_archives:/config/customization_archives
       - ./certificatmgr:/config/certificatmgr
-    extra_hosts:
-      # - "my-bucket.s3mock:172.18.0.5"  # IP de s3mock container
-      - "my-bucket.s3.eu-west-3.localstack:172.18.0.2"  # IP de s3mock container
-  
+    dns:
+      - 172.22.0.10 # utiliser le DNS de localstack pour que maximo puisse résoudre le virtualhost style s3 url
+    networks:
+      - default
+      - localstack_network
+
   # bdi:
   #   container_name: bdi
   #   hostname: bdi
@@ -103,7 +103,7 @@ services:
 
   localstack:
     image: localstack/localstack:4.14.0
-    container_name: s3.eu-west-3.localstack
+    container_name: s3.eu-west-3.localhost.localstack.cloud
     ports:
       - "4566:4566"      # Port principal de LocalStack
       - "4571:4571"      # Port S3 (optionnel)
@@ -114,3 +114,13 @@ services:
     volumes:
       - "./localstack/my-bucket:/var/lib/localstack/tmp/init-my-bucket" # ce volume est nécessaire pour initialiser la bucket à chaque démarrage, car la version free de localstack ne supporte pas la persistance
       - "./localstack/init:/etc/localstack/init/ready.d/"
+    networks:
+      localstack_network:
+        ipv4_address: 172.22.0.10
+
+networks:
+  localstack_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/24
