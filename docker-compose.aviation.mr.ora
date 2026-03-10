@@ -13,6 +13,7 @@ services:
     environment:
       - ORACLE_PWD=Smartway1
     volumes:
+      # - ./oracle-db/data_testxliff:/opt/oracle/oradata
       - ./oracle-db/data:/opt/oracle/oradata
       #- ./oracle-db/setup_scripts:/opt/oracle/scripts/setup
     healthcheck:
@@ -50,6 +51,9 @@ services:
       - ./doclinks:/opt/IBM/doclinks
       - ./customization_archives:/config/customization_archives
       - ./certificatmgr:/config/certificatmgr
+    extra_hosts:
+      # - "my-bucket.s3mock:172.18.0.5"  # IP de s3mock container
+      - "my-bucket.s3.eu-west-3.localstack:172.18.0.4"  # IP de s3mock container
   
   # bdi:
   #   container_name: bdi
@@ -96,3 +100,17 @@ services:
     ports:
       - 9092:9092
       - 9093:9093
+
+  localstack:
+    image: localstack/localstack:2.1
+    container_name: s3.eu-west-3.localstack
+    ports:
+      - "4566:4566"      # Port principal de LocalStack
+      - "4571:4571"      # Port S3 (optionnel)
+    environment:
+      - SERVICES=s3
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+      - HOSTNAME_EXTERNAL=s3.eu-west-3.localstack
+    volumes:
+      - "./localstack_data:/tmp/localstack/data"
