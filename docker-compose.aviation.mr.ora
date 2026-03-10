@@ -53,7 +53,7 @@ services:
       - ./certificatmgr:/config/certificatmgr
     extra_hosts:
       # - "my-bucket.s3mock:172.18.0.5"  # IP de s3mock container
-      - "my-bucket.s3.eu-west-3.localstack:172.18.0.4"  # IP de s3mock container
+      - "my-bucket.s3.eu-west-3.localstack:172.18.0.2"  # IP de s3mock container
   
   # bdi:
   #   container_name: bdi
@@ -102,15 +102,15 @@ services:
       - 9093:9093
 
   localstack:
-    image: localstack/localstack:2.1
+    image: localstack/localstack:4.14.0
     container_name: s3.eu-west-3.localstack
     ports:
       - "4566:4566"      # Port principal de LocalStack
       - "4571:4571"      # Port S3 (optionnel)
     environment:
-      - SERVICES=s3
+      # - SERVICES=s3
       - DEBUG=1
-      - DATA_DIR=/tmp/localstack/data
       - HOSTNAME_EXTERNAL=s3.eu-west-3.localstack
     volumes:
-      - "./localstack_data:/tmp/localstack/data"
+      - "./localstack/my-bucket:/var/lib/localstack/tmp/init-my-bucket" # ce volume est nécessaire pour initialiser la bucket à chaque démarrage, car la version free de localstack ne supporte pas la persistance
+      - "./localstack/init:/etc/localstack/init/ready.d/"
