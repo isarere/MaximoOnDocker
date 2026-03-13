@@ -16,6 +16,10 @@ fi
 
 cp -Rf /opt/IBM/SMP/maximo/applications/maximo/businessobjects/classes/* /config/apps/maximo-all.ear/businessobjects.jar/
 cp -Rf /opt/IBM/SMP/maximo/applications/maximo/maximouiweb/webmodule/WEB-INF/classes/* /config/apps/maximo-all.ear/maximouiweb.war/WEB-INF/classes/
+# conf mdb
+if [ -d "/opt/IBM/SMP/maximo/deployment/was-liberty-default/config-deployment-descriptors/maximo-all/mboejb/ejbmodule/META-INF" ]; then
+    cp /opt/IBM/SMP/maximo/deployment/was-liberty-default/config-deployment-descriptors/maximo-all/mboejb/ejbmodule/META-INF/*.xml /opt/ibm/wlp/usr/servers/defaultServer/apps/maximo-all.ear/mboejb.jar/META-INF/ || echo "Warning: Failed to copy some META-INF files" >&2
+fi
 
 echo "import certs"
 certificatmgr_dir="/config/certificatmgr"
