@@ -130,6 +130,10 @@ RUN mv web-dev.xml  web.xml
 #RUN mv web-dev.xml  web.xml
 #RUN mv web-guest-dev.xml  web-guest.xml
 
+# configure session timeout settings
+RUN echo "mxe.usermonitor.timeout=720" >> /opt/IBM/SMP/maximo/applications/maximo/properties/maximo.properties
+RUN echo "mxe.usermonitor.InactiveSessionTimeLimit=840" >> /opt/IBM/SMP/maximo/applications/maximo/properties/maximo.properties
+
 WORKDIR /opt/IBM/SMP/maximo/deployment/was-liberty-default
 RUN ./maximo-all.sh
 
