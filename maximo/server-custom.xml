@@ -14,6 +14,8 @@
         <queue id="sqinbd" maintainStrictOrder="true" maxMessageDepth="200000" failedDeliveryPolicy="KEEP_TRYING" maxRedeliveryCount="-1"/>
         <queue id="cqinerrbd" maxMessageDepth="100000" exceptionDestination="cqinerrbd"/>
         <queue id="cqinbd" maxMessageDepth="100000" exceptionDestination="cqinerrbd"/>
+        <queue id="cqinerrbd_kds" maxMessageDepth="100000" failedDeliveryPolicy="DISCARD"/>
+        <queue id="cqinbd_kds" maxMessageDepth="100000" exceptionDestination="cqinerrbd_kds"/>
         <queue id="cqouterrbd" maxMessageDepth="100000" failedDeliveryPolicy="KEEP_TRYING"/>
         <queue id="cqoutbd" maxMessageDepth="100000" exceptionDestination="cqouterrbd"/>
         <queue id="notferrbd" maxMessageDepth="100000" failedDeliveryPolicy="KEEP_TRYING"/>
@@ -29,6 +31,8 @@
     <jmsQueue jndiName="jms/maximo/int/queues/sqin"><properties.wasJms queueName="sqinbd"/></jmsQueue>
     <jmsQueue jndiName="jms/maximo/int/queues/cqin"><properties.wasJms queueName="cqinbd"/></jmsQueue>
     <jmsQueue jndiName="jms/maximo/int/queues/cqinerr"><properties.wasJms queueName="cqinerrbd"/></jmsQueue>
+    <jmsQueue jndiName="jms/maximo/int/queues/cqin_kds"><properties.wasJms queueName="cqinbd_kds"/></jmsQueue>
+    <jmsQueue jndiName="jms/maximo/int/queues/cqinerr_kds"><properties.wasJms queueName="cqinerrbd_kds"/></jmsQueue>
     <jmsQueue jndiName="jms/maximo/int/queues/cqout"><properties.wasJms queueName="cqoutbd"/></jmsQueue>
     <jmsQueue jndiName="jms/maximo/int/queues/cqouterr"><properties.wasJms queueName="cqouterrbd"/></jmsQueue>
     <jmsQueue jndiName="jms/maximo/int/queues/notf"><properties.wasJms queueName="notfbd"/></jmsQueue>
@@ -37,6 +41,7 @@
 
     <jmsActivationSpec id="maximo-all/mboejb/JMSContQueueProcessor-1" maxEndpoints="5"><properties.wasJms destinationLookup="jms/maximo/int/queues/cqin" maxConcurrency="5" maxBatchSize="20" connectionFactoryLookup="jms/maximo/int/cf/intcf"/></jmsActivationSpec>
     <jmsActivationSpec id="maximo-all/mboejb/JMSContQueueProcessor-2" maxEndpoints="1"><properties.wasJms destinationLookup="jms/maximo/int/queues/cqinerr" maxConcurrency="1" maxBatchSize="20" connectionFactoryLookup="jms/maximo/int/cf/intcf"/></jmsActivationSpec>
+    <jmsActivationSpec id="maximo-all/mboejb/KDS-JMSContQueueProcessor-in" maxEndpoints="5"><properties.wasJms destinationLookup="jms/maximo/int/queues/cqin_kds" maxConcurrency="5" maxBatchSize="20" connectionFactoryLookup="jms/maximo/int/cf/intcf"/></jmsActivationSpec>
     <jmsActivationSpec id="maximo-all/mboejb/JMSContOutQueueProcessor-1" maxEndpoints="5"><properties.wasJms destinationLookup="jms/maximo/int/queues/cqout" maxConcurrency="5" maxBatchSize="20" connectionFactoryLookup="jms/maximo/int/cf/intcf"/></jmsActivationSpec>
     <jmsActivationSpec id="maximo-all/mboejb/JMSContOutQueueProcessor-2" maxEndpoints="1"><properties.wasJms destinationLookup="jms/maximo/int/queues/cqouterr" maxConcurrency="1" maxBatchSize="20" connectionFactoryLookup="jms/maximo/int/cf/intcf"/></jmsActivationSpec>
 
