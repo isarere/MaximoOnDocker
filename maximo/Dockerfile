@@ -131,9 +131,16 @@ RUN ./maximo-all.sh
 
 RUN echo "-Xmx8192m" >> /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server/jvm.options
 
-FROM websphere-liberty:24.0.0.8-full-java8-ibmjava
+FROM icr.io/appcafe/websphere-liberty:full-java17-openj9-ubi-minimal
 
 COPY --chown=1001:0 --from=BASE /opt/IBM /opt/IBM/
+
+# The Apple Silicon Liberty image keeps Java at /opt/java/openjdk, while Maximo tools expect tools/java/jre.
+RUN test -L /opt/IBM/SMP/maximo/tools/java && \
+    rm /opt/IBM/SMP/maximo/tools/java && \
+    mkdir /opt/IBM/SMP/maximo/tools/java && \
+    ln -s /opt/java/openjdk /opt/IBM/SMP/maximo/tools/java/jre && \
+    test -x /opt/IBM/SMP/maximo/tools/java/jre/bin/java
 COPY --chown=1001:0 --from=BASE /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server /config/
 COPY --chown=1001:0 update-maximoproperties.sh /opt/IBM
 COPY --chown=1001:0 updatedb-needed.sh /opt/IBM
