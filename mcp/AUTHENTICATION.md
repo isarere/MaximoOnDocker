@@ -54,9 +54,14 @@ headers or introspection data.
 
 ## Validation and current startup status
 
-- Created and started the real Compose container. It exited with the explicit
-  missing `MAXIMO_API_KEY` error because the ignored local file is empty. Stopped
-  it to avoid repeated restarts; authenticated metadata/tool loading is pending.
+- Retrieved the existing local MAXADMIN API key with the user-provided login
+  and stored it only in the ignored mode-600 environment file. No new key was
+  created. Authenticated Manage metadata returned HTTP 200.
+- Started the Compose container successfully. MCP readiness returned HTTP 200
+  and metadata polling loaded the `apischema` tool.
+- Completed a live MCP initialization and tool listing. A read-only `apischema`
+  call for `MXAPIASSET` returned its schema with the client API key; the same
+  call without a key was rejected. No MAS IDP is configured in this local stack.
 - Exercised the recovered tool handler inside the pinned image with synthetic
   credentials and mocked HTTP clients: API-key forwarding made no IDP request;
   JWT introspection supplied `foruser`; missing client headers were rejected.
@@ -64,7 +69,8 @@ headers or introspection data.
 - Earlier network checks reached local Manage from the MCP image: unauthenticated
   metadata returned HTTP 401; the public ping endpoint returned HTTP 200.
 
-To finish startup, set a key from local Manage in `mcp/.local/local-api.env`, then:
+For subsequent starts, retain the local Manage key in the ignored
+`mcp/.local/local-api.env`, then:
 
 ```bash
 docker compose -f docker-compose.mcp up -d
