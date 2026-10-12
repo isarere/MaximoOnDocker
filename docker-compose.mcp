@@ -1,0 +1,60 @@
+# Local Maximo API: http://localhost:9080/maximo/api on the Mac.
+# The same endpoint on the shared Docker network is http://maximo:9080/maximo/api.
+name: maximo-mcp
+services:
+  mcp:
+    image: cp.icr.io/cp/mas/mas-mcp-framework@sha256:d81d459c1936efc8560d6c72578bf0f3fbbe152389e249c001c1c18b1b51f34f
+    platform: linux/amd64
+    restart: unless-stopped
+    user: "1000800000:0"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    cpus: 0.3
+    mem_limit: 400m
+    mem_reservation: 64m
+    env_file:
+      - path: ./mcp/.local/local-api.env
+        format: raw
+    environment:
+      APP_API_URL: http://maximo:9080/maximo/api
+      APP_ID: manage
+      TOOL_RESPONSE_TIMEOUT: "600"
+      POLLING_FREQUENCY: "600"
+    entrypoint: [python3]
+    command:
+      - -m
+      - uvicorn
+      - local_app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "9443"
+      - --ssl-certfile
+      - /etc/mcp-local-tls/tls.crt
+      - --ssl-keyfile
+      - /etc/mcp-local-tls/tls.key
+    ports:
+      - "127.0.0.1:9443:9443"
+    networks: [maximo]
+    volumes:
+      - ./mcp/local_app.py:/opt/ibm/mas-mcp-framework/local_app.py:ro
+      - ./mcp/.local/local-tls:/etc/mcp-local-tls:ro
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - >-
+          import ssl, urllib.request;
+          ctx = ssl._create_unverified_context();
+          [urllib.request.urlopen('https://127.0.0.1:9443/probes/' + probe, context=ctx, timeout=3).close()
+          for probe in ('startup', 'liveness', 'ready')]
+      start_period: 3600s
+      start_interval: 60s
+      interval: 10s
+      timeout: 10s
+      retries: 3
+networks:
+  maximo:
+    external: true
+    name: ${MAXIMO_NETWORK:-maximoondocker_default}

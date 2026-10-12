@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <server description="new server">
 
+    <!-- Liberty's ORB requires a registry. Maximo's native login still uses
+         database users; no extra container-level login accounts are created. -->
+    <basicRegistry id="localOrbRegistry" realm="MaximoLocal"/>
+    <ssl id="controllerConnectionConfig" keyStoreRef="defaultKeyStore"/>
+    <ssl id="memberConnectionConfig" keyStoreRef="defaultKeyStore"/>
+
     <!-- Enable features -->
       <featureManager>
         <feature>wasJmsSecurity-1.0</feature>

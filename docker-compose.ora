@@ -3,6 +3,7 @@ services:
   database:
     container_name: database
     build: './oracle-db'
+    platform: linux/arm64
     #image: 'container-registry.oracle.com/database/free:latest'
     restart: unless-stopped
     networks:
@@ -13,7 +14,7 @@ services:
     environment:
       - ORACLE_PWD=Smartway1
     volumes:
-      - ./oracle-db/data:/opt/oracle/oradata
+      - oracle-data:/opt/oracle/oradata
       #- ./oracle-db/setup_scripts:/opt/oracle/scripts/setup
     healthcheck:
       test: ["CMD", "/opt/oracle/healthcheck.sh"]
@@ -25,6 +26,7 @@ services:
   maximo:
     container_name: maximo
     build: './maximo'
+    platform: linux/arm64
     restart: unless-stopped
     depends_on:
       database:
@@ -44,4 +46,12 @@ services:
       - JVM_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7777"
     volumes:
       - ./doclinks:/opt/IBM/doclinks
-  
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:9080/maximo/webclient/login/login.jsp"]
+      start_period: 30m
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  oracle-data:
