@@ -48,3 +48,16 @@ The original pod-equivalent cluster setup is retained in
 
 See [AUTHENTICATION.md](AUTHENTICATION.md) for the source inspection, IDP dependency,
 and local startup validation.
+
+## Add to Codex
+
+With the container running, register its stdio proxy:
+
+```bash
+codex mcp add maximo-mcp -- /usr/bin/python3 "$(pwd)/mcp/codex_proxy.py"
+```
+
+The proxy runs inside the existing container, uses its API key, and verifies
+the HTTPS certificate against the mounted local certificate. The Codex config
+contains no API key. Docker must be running and `maximo-mcp-mcp-1` must be up.
+Restart the MCP connection in Codex after registration to load its tools.
