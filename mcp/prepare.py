@@ -5,6 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import argparse
 
 ROOT = Path(__file__).resolve().parent.parent
 LOCAL = ROOT / "mcp/.local"
@@ -35,9 +36,33 @@ def export_files(resource_data, directory):
         file.chmod(0o644)
 
 
+def prepare_tls():
+    tls = LOCAL / "local-tls"
+    tls.mkdir(mode=0o755, exist_ok=True)
+    if not (tls / "tls.key").exists() or not (tls / "tls.crt").exists():
+        subprocess.run([
+            "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "365",
+            "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost,IP:127.0.0.1",
+            "-keyout", str(tls / "tls.key"), "-out", str(tls / "tls.crt")
+        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    for file in tls.iterdir():
+        file.chmod(0o644)
+
+
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--local", action="store_true", help="Prepare local TLS/API-key files without OpenShift access")
+    args = parser.parse_args()
     LOCAL.mkdir(mode=0o700, parents=True, exist_ok=True)
     LOCAL.chmod(0o700)
+    prepare_tls()
+    if args.local:
+        api_env = LOCAL / "local-api.env"
+        if not api_env.exists():
+            api_env.write_text("MAXIMO_API_KEY=\n")
+        api_env.chmod(0o600)
+        print("Prepared local MCP TLS. Set MAXIMO_API_KEY in mcp/.local/local-api.env.")
+        return
     # Only this internal mTLS identity is exported; public route private keys stay in the cluster.
     export_files(resource("secret", "adp-internal-manage-tls"), "mas-certs")
     export_files(resource("configmap", "adp-mas-truststore-cfg"), "truststore")
@@ -54,16 +79,6 @@ def main():
     credentials_file = LOCAL / "credentials.env"
     credentials_file.write_text("".join(credentials))
     credentials_file.chmod(0o600)
-    tls = LOCAL / "local-tls"
-    tls.mkdir(mode=0o755, exist_ok=True)
-    if not (tls / "tls.key").exists() or not (tls / "tls.crt").exists():
-        subprocess.run([
-            "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "365",
-            "-subj", "/CN=localhost", "-addext", "subjectAltName=DNS:localhost,IP:127.0.0.1",
-            "-keyout", str(tls / "tls.key"), "-out", str(tls / "tls.crt")
-        ], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-    for file in tls.iterdir():
-        file.chmod(0o644)
     host_ip = os.environ.get("MCP_HOST_IP")
     if not host_ip:
         host_ip = subprocess.check_output([

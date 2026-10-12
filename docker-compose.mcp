@@ -1,4 +1,5 @@
-# Based on mas-adp-manage/adp-mcp, inspected 2026-10-12.
+# Local Maximo API: http://localhost:9080/maximo/api on the Mac.
+# The same endpoint on the shared Docker network is http://maximo:9080/maximo/api.
 name: maximo-mcp
 services:
   mcp:
@@ -12,32 +13,32 @@ services:
     mem_limit: 400m
     mem_reservation: 64m
     env_file:
-      - path: ./mcp/.local/credentials.env
+      - path: ./mcp/.local/local-api.env
         format: raw
     environment:
-      MXE_MASDEPLOYED: "1"
-      MXE_MASINTERNALAPI: https://internalapi.mas-adp-core.svc:18444
-      APP_API_URL: https://adp-mas-integration.mas-adp-manage.svc:18443/maximo/api
+      APP_API_URL: http://maximo:9080/maximo/api
       APP_ID: manage
-      COREIDP_OIDC_URL: https://coreidp.mas-adp-core.svc.cluster.local:18445/oidc/endpoint/MaximoAppSuite/introspect
       TOOL_RESPONSE_TIMEOUT: "600"
       POLLING_FREQUENCY: "600"
-      OPENAPI_EP: /oas?aitools=1&lean=1
-      GET_ETAG_EP: /service/MCPTools?action=wsmethod:getLastUpdate
-      # Kubernetes rounds the 300m CPU limit up to one whole CPU for this env field.
-      CPU_LIMITS_MCP: "1"
+    entrypoint: [python3]
+    command:
+      - -m
+      - uvicorn
+      - local_app:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "9443"
+      - --ssl-certfile
+      - /etc/mcp-local-tls/tls.crt
+      - --ssl-keyfile
+      - /etc/mcp-local-tls/tls.key
     ports:
       - "127.0.0.1:9443:9443"
-    extra_hosts:
-      - "adp-mas-integration.mas-adp-manage.svc=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
-      - "internalapi.mas-adp-core.svc=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
-      - "coreidp.mas-adp-core.svc.cluster.local=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
+    networks: [maximo]
     volumes:
-      - ./mcp/.local/mas-certs:/etc/mas/certs:ro
+      - ./mcp/local_app.py:/opt/ibm/mas-mcp-framework/local_app.py:ro
       - ./mcp/.local/local-tls:/etc/mcp-local-tls:ro
-      - ./mcp/.local/truststore:/truststore:ro
-      - ./mcp/.local/public-certs:/etc/ssl/certs/public-manage-tls:ro
-      - ./mcp/nginx.template:/etc/nginx/nginx.template:ro
     healthcheck:
       test:
         - CMD
@@ -53,3 +54,7 @@ services:
       interval: 10s
       timeout: 10s
       retries: 3
+networks:
+  maximo:
+    external: true
+    name: ${MAXIMO_NETWORK:-maximoondocker_default}

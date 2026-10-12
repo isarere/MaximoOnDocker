@@ -45,7 +45,7 @@ docker builder prune --all --force
 The last command removes all unused build cache. It preserves containers and
 Oracle volumes, but the next build will repeat cached build steps.
 
-For the separately prepared MCP service that connects to OpenShift Maximo,
+For the MCP service connected to local Maximo, with an optional OpenShift setup,
 see [mcp/README.md](mcp/README.md).
 
 This project is aimed to help you deploy automatically Maximo Manage 8 and above on your local ubuntu VM, with few clicks.
