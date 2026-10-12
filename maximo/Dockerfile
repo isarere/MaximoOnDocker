@@ -1,19 +1,19 @@
-FROM cp.icr.io/cp/manage/extension-health:9.1.2 AS HEALTH
-# FROM cp.icr.io/cp/manage/extension-aviation:8.1.12 AS AVIATION
-# FROM cp.icr.io/cp/manage/bdi:8.3.2 AS BDI
-# FROM cp.icr.io/cp/manage/extension-civil:8.6.2 AS CIVIL
-# FROM cp.icr.io/cp/manage/extension-nuclear:9.0.5 AS NUCLEAR
-# FROM cp.icr.io/cp/manage/extension-oilandgas:8.1.8 AS OILANDGAS
-# FROM cp.icr.io/cp/manage/extension-transportation:9.0.2 AS TRANSPORTATION
-# FROM cp.icr.io/cp/manage/extension-utilities:8.1.6 AS UTILITIES
-# FROM cp.icr.io/cp/manage/extension-serviceprovider:9.0.4 AS SERVICEPROVIDER
-# FROM cp.icr.io/cp/manage/extension-acm:8.1.11 AS ACM
-# FROM cp.icr.io/cp/manage/extension-hse:9.0.9 AS HSE
-# FROM cp.icr.io/cp/manage/extension-spatial:8.7.1 AS SPATIAL
-FROM cp.icr.io/cp/manage/extension-strategize:9.1.1 AS STRATEGIZE
-# FROM cp.icr.io/cp/manage/extension-icd:9.0.6 AS ICD
+FROM cp.icr.io/cp/manage/extension-health:9.2.32-amd64@sha256:da7bfd25aec03d7e0d252b93d1374022e78b335b5e39199f8475277369d527cf AS HEALTH
+# FROM cp.icr.io/cp/manage/extension-aviation:9.2.18-amd64@sha256:76752da1d1b2f262ceb907833a1ba05c4e7f1ba415e696cd539b9157dbd57d42 AS AVIATION
+# FROM cp.icr.io/cp/manage/bdi:9.2.29-amd64@sha256:3eb288791aa264cc2fc84d76115ee16a6f0db303300b6fbe0b3ef17eadb791b6 AS BDI
+# FROM cp.icr.io/cp/manage/extension-civil:9.2.61-amd64@sha256:03cb843f5976c483ee3839040aa450cbcad5eb01443c3860f0c3b23841087130 AS CIVIL
+# FROM cp.icr.io/cp/manage/extension-nuclear:9.2.16-amd64@sha256:be5371763f5103fe8c18ec4d49c0fd124d9a402e65b408ab8c3f92cd0c0fead2 AS NUCLEAR
+# FROM cp.icr.io/cp/manage/extension-oilandgas:9.2.43-amd64@sha256:8526fed344306bf118ed26d09916e45aa22ebbfdffdc43591a56a79a6d8d69f4 AS OILANDGAS
+# FROM cp.icr.io/cp/manage/extension-transportation:9.2.19-amd64@sha256:67202f8811f9fcbe97872eaef6b9ef55cd18d67a11a06ba9bb3c09663d97c963 AS TRANSPORTATION
+# FROM cp.icr.io/cp/manage/extension-utilities:9.2.12-amd64@sha256:c3643c0b110a86cd0d8d3aa0cf4fa85d5587594e1f19c404c240939c23d94a00 AS UTILITIES
+# FROM cp.icr.io/cp/manage/extension-serviceprovider:9.2.24-amd64@sha256:78de97a37df479c7ce5615cdbe5253596e4c0d12718eaad7ffdbf0415763ccfd AS SERVICEPROVIDER
+# FROM cp.icr.io/cp/manage/extension-acm:9.2.29-amd64@sha256:40ab04fcd5ca93752a07d750d250887867305f6c444c50daa4ed10411ee74986 AS ACM
+# FROM cp.icr.io/cp/manage/extension-hse:9.2.43-amd64@sha256:040f377d175e2cae70cf3d44b062ad14d5920396ad983fcb32888a41b5e8d72b AS HSE
+# FROM cp.icr.io/cp/manage/extension-spatial:9.2.42-amd64@sha256:d2f2d402c6db8cb7d0ea4573fda484f970a294a17179bfd8380bfb5567f92b6a AS SPATIAL
+FROM cp.icr.io/cp/manage/extension-strategize:9.2.45-amd64@sha256:859265f7d63d35d1f8c77ec28282c8415a70fa77a84e08c3c0b5785c5e96b1a1 AS STRATEGIZE
+# FROM cp.icr.io/cp/manage/extension-icd:9.2.50-amd64@sha256:e39bc58ef0037726bf62dfb99fde4b10da6bfba01e9999a942562735798541f6 AS ICD
 
-FROM cp.icr.io/cp/manage/manageadmin:9.1.65 AS BASE
+FROM cp.icr.io/cp/manage/manageadmin:9.2.237-amd64@sha256:2d4af29d6c3f8d9401045ce9231503cd2d1bec28be21e99c7b77a30c6e0f51da AS BASE
 
 WORKDIR /opt/IBM/SMP/maximo
 
@@ -131,7 +131,7 @@ RUN ./maximo-all.sh
 
 RUN echo "-Xmx8192m" >> /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server/jvm.options
 
-FROM icr.io/appcafe/websphere-liberty:full-java17-openj9-ubi-minimal
+FROM icr.io/appcafe/websphere-liberty:full-java25-openj9-ubi-minimal@sha256:c3a3f7b499bdefa4b9e2aa921f8f36f25007bfffe84a2691fb9dcc23eb42cea2
 
 COPY --chown=1001:0 --from=BASE /opt/IBM /opt/IBM/
 
@@ -142,14 +142,17 @@ RUN test -L /opt/IBM/SMP/maximo/tools/java && \
     ln -s /opt/java/openjdk /opt/IBM/SMP/maximo/tools/java/jre && \
     test -x /opt/IBM/SMP/maximo/tools/java/jre/bin/java
 COPY --chown=1001:0 --from=BASE /opt/IBM/SMP/maximo/deployment/was-liberty-default/deployment/maximo-all/maximo-all-server /config/
+COPY --chown=1001:0 server-custom.xml /config
+
+# The local JMS queues use wasJmsServer, not an external IBM MQ adapter.
+RUN sed -i '/<feature>wmqJmsClient-2.0<\/feature>/d' /config/server.xml
+RUN configure.sh
+
+# Runtime script updates do not need to repeat Liberty's build-time warm-up.
 COPY --chown=1001:0 update-maximoproperties.sh /opt/IBM
 COPY --chown=1001:0 updatedb-needed.sh /opt/IBM
 COPY --chown=1001:0 docker-server.sh /opt/ibm/helpers/runtime/
-COPY --chown=1001:0 server-custom.xml /config
-
 RUN chmod a+x /opt/IBM/update-maximoproperties.sh
-
-RUN configure.sh
 
 #RUN sed -i -e "s/\(mxe.db.schemaowner\)=\(.*\)/\1=$MXE_DB_SCHEMAOWNER/g" /opt/IBM/SMP/maximo/applications/maximo/properties/maximo.properties
 #RUN sed -i -e "s/\(mxe.db.url\)=\(.*\)/\1=$MXE_DB_URL/g" /opt/IBM/SMP/maximo/applications/maximo/properties/maximo.properties
@@ -172,4 +175,3 @@ ENV MXE_SECURITY_CRYPTOX_KEY=
 ENV MXE_DB_USER=maximo
 ENV MXE_DB_PASSWORD=maximo
 ENV MAXIMO_DATAFILE=maxdemo
-

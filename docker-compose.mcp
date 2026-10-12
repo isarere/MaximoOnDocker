@@ -1,0 +1,55 @@
+# Based on mas-adp-manage/adp-mcp, inspected 2026-10-12.
+name: maximo-mcp
+services:
+  mcp:
+    image: cp.icr.io/cp/mas/mas-mcp-framework@sha256:d81d459c1936efc8560d6c72578bf0f3fbbe152389e249c001c1c18b1b51f34f
+    platform: linux/amd64
+    restart: unless-stopped
+    user: "1000800000:0"
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    cpus: 0.3
+    mem_limit: 400m
+    mem_reservation: 64m
+    env_file:
+      - path: ./mcp/.local/credentials.env
+        format: raw
+    environment:
+      MXE_MASDEPLOYED: "1"
+      MXE_MASINTERNALAPI: https://internalapi.mas-adp-core.svc:18444
+      APP_API_URL: https://adp-mas-integration.mas-adp-manage.svc:18443/maximo/api
+      APP_ID: manage
+      COREIDP_OIDC_URL: https://coreidp.mas-adp-core.svc.cluster.local:18445/oidc/endpoint/MaximoAppSuite/introspect
+      TOOL_RESPONSE_TIMEOUT: "600"
+      POLLING_FREQUENCY: "600"
+      OPENAPI_EP: /oas?aitools=1&lean=1
+      GET_ETAG_EP: /service/MCPTools?action=wsmethod:getLastUpdate
+      # Kubernetes rounds the 300m CPU limit up to one whole CPU for this env field.
+      CPU_LIMITS_MCP: "1"
+    ports:
+      - "127.0.0.1:9443:9443"
+    extra_hosts:
+      - "adp-mas-integration.mas-adp-manage.svc=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
+      - "internalapi.mas-adp-core.svc=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
+      - "coreidp.mas-adp-core.svc.cluster.local=${MCP_HOST_IP:?Run mcp/prepare.py first and use its compose.env}"
+    volumes:
+      - ./mcp/.local/mas-certs:/etc/mas/certs:ro
+      - ./mcp/.local/local-tls:/etc/mcp-local-tls:ro
+      - ./mcp/.local/truststore:/truststore:ro
+      - ./mcp/.local/public-certs:/etc/ssl/certs/public-manage-tls:ro
+      - ./mcp/nginx.template:/etc/nginx/nginx.template:ro
+    healthcheck:
+      test:
+        - CMD
+        - python3
+        - -c
+        - >-
+          import ssl, urllib.request;
+          ctx = ssl._create_unverified_context();
+          [urllib.request.urlopen('https://127.0.0.1:9443/probes/' + probe, context=ctx, timeout=3).close()
+          for probe in ('startup', 'liveness', 'ready')]
+      start_period: 3600s
+      start_interval: 60s
+      interval: 10s
+      timeout: 10s
+      retries: 3

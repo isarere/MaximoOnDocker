@@ -1,6 +1,53 @@
 
 # Maximo On Docker
 
+## Maximo 9.2 on Apple Silicon
+
+The Dockerfiles pin the Manage and extension images published in IBM's
+`ibm-mas-manage-operator-bundle:9.2.4-amd64` (checked 12 October 2026).
+The bundle selects Manage **9.2.237**. The default build includes Health
+**9.2.32** and Reliability Strategies **9.2.45**. Image references are recorded
+in `maximo/images.lock.json`; disabled extensions remain disabled.
+
+`docker-compose.ora` runs Oracle and the Java 25 Liberty runtime on ARM64.
+The IBM build stages use AMD64 images and require Colima's AMD64 emulation.
+The current IBM `MaximoScript` tooling requires Java 25 (class-file version 69).
+Keep enough free space in the Colima VM for the unpacked images and build layers
+(at least 50 GB free is recommended for this build).
+
+```bash
+docker login cp.icr.io -u cp
+docker compose -f docker-compose.ora up -d --build
+docker compose -f docker-compose.ora logs -f maximo
+```
+
+Enter your IBM entitlement key at the Docker login password prompt.
+Maximo is available at `http://localhost:9080/maximo` after database
+initialization or upgrade and Liberty application startup finish. Container
+status alone does not indicate application readiness.
+
+Back up an existing Maximo schema before upgrading: startup may run
+`updatedblite.sh` against the persisted Oracle database. Preserve the old image
+as well; restarting an older image does not undo a database upgrade.
+Startup requires an explicit successful table-check result before deciding
+whether to initialize a database. Java or connection failures stop startup;
+version checks also require a numeric query result instead of relying only on
+the IBM utility's exit status.
+
+If a build reports `No space left on device`, inspect VM space and the build cache:
+
+```bash
+colima ssh --profile arm -- df -h /
+docker system df
+docker builder prune --all --force
+```
+
+The last command removes all unused build cache. It preserves containers and
+Oracle volumes, but the next build will repeat cached build steps.
+
+For the separately prepared MCP service that connects to OpenShift Maximo,
+see [mcp/README.md](mcp/README.md).
+
 This project is aimed to help you deploy automatically Maximo Manage 8 and above on your local ubuntu VM, with few clicks.
 
 

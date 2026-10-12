@@ -46,6 +46,12 @@ services:
       - JVM_ARGS="-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=7777"
     volumes:
       - ./doclinks:/opt/IBM/doclinks
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:9080/maximo/webclient/login/login.jsp"]
+      start_period: 30m
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
 volumes:
   oracle-data:
