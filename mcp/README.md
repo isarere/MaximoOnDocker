@@ -45,3 +45,6 @@ curl --cacert mcp/.local/local-tls/tls.crt https://localhost:9443/probes/ready
 The original pod-equivalent cluster setup is retained in
 [docker-compose.mcp.openshift](../docker-compose.mcp.openshift). See
 [OPENSHIFT.md](OPENSHIFT.md) for its certificate preparation and tunnel helper.
+
+See [AUTHENTICATION.md](AUTHENTICATION.md) for the source inspection, IDP dependency,
+and local startup validation.

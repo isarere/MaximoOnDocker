@@ -24,13 +24,17 @@ sys.modules[vendor.__name__] = vendor
 exec(compile(tree, str(vendor_path), "exec"), vendor.__dict__)
 
 
-class OmitCredentialHeaders(logging.Filter):
+class OmitCredentialDetails(logging.Filter):
     def filter(self, record):
-        # The vendor otherwise logs forwarded authentication headers at INFO.
-        return not record.getMessage().startswith("Extracted headers from HTTP request:")
+        # The vendor logs authentication headers in extraction and request logs.
+        message = record.getMessage()
+        return not (
+            message.startswith(("Extracted headers from HTTP request:", "OIDC Data:"))
+            or (message.startswith("Sending ") and " with headers " in message)
+        )
 
 
-vendor.logger.addFilter(OmitCredentialHeaders())
+vendor.logger.addFilter(OmitCredentialDetails())
 server = vendor.MasFrameworkMcpServer(
     local_mode=True,
     base_url=os.environ["APP_API_URL"],
