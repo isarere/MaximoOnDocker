@@ -158,8 +158,21 @@ else
   /opt/IBM/update-maximoproperties.sh
   currentworkdir=$(pwd)
   echo "MAXIMO : verify if maxinst needs to be performed..."
-  source "/opt/IBM/SMP/maximo/functions-dbchecks.sh"
-  isMaximoDB=$(isMaximoDB)
+  source "/opt/IBM/SMP/maximo/functions-dbchecks.sh" || exit 1
+  isMaximoDB=$(isMaximoDB) || exit 1
+  # The IBM helper reports every failed query as a missing database, including
+  # Java and connection errors. Require QueryCount's actual table-check result.
+  dbcheck_log=/opt/IBM/SMP/maximo/tools/maximo/internal/ismaximo.log
+  case "$isMaximoDB" in
+    *"status:is-maximo:true"*) expected_dbcheck="Found" ;;
+    *"status:is-maximo:false"*) expected_dbcheck="Not found" ;;
+    *) expected_dbcheck="" ;;
+  esac
+  if [[ -z "$expected_dbcheck" ]] || ! grep -Fxq "$expected_dbcheck" "$dbcheck_log"; then
+    echo "Maximo database check failed; initialization has been stopped."
+    cat "$dbcheck_log"
+    exit 1
+  fi
 
   if [[ "${isMaximoDB}" == *"status:is-maximo:false"* ]]; then
     echo "Database not found."
@@ -168,7 +181,7 @@ else
     
     cd /opt/IBM/SMP/maximo/tools/maximo
     ./maxinst.sh -i${MAXIMO_DATAFILE} -sMAXINDEX -tMAXDATA -y
-    if [[ "$?" -eq "1" ]]; then
+    if [[ "$?" -ne "0" ]]; then
       echo "Maxinst/UpdateDB process ended with errors. Please check logs"
       echo "For logs go to the terminal and cd /opt/IBM/SMP/maximo/tools/maximo/log "
       sleep 120
@@ -183,6 +196,10 @@ else
     echo "MAXIMO : verify if updatedb needs to be performed..."
     /opt/IBM/updatedb-needed.sh 
     isUpdateNeeded=$?
+    if [[ ${isUpdateNeeded} != 0 && ${isUpdateNeeded} != 1 ]]; then
+      echo "Unable to check the Maximo database version; startup has been stopped."
+      exit 1
+    fi
 
     if [[ ${isUpdateNeeded} == 1 ]]; then
       echo "Database needs to be updated."
@@ -193,7 +210,7 @@ else
 
       ./updatedblite.sh
       updatedblite_res=$?
-      if [[ ${updatedblite_res} == 1 ]]; then
+      if [[ ${updatedblite_res} != 0 ]]; then
         echo "UpdateDB process ended with errors. Please check logs"
         echo "For logs go to the terminal and cd /opt/IBM/SMP/maximo/tools/maximo/log "
         sleep 120

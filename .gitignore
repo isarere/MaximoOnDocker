@@ -1,2 +1,4 @@
 db2/data
 oracle-db/data
+# Local MCP credentials, certificates, and tunnel logs
+mcp/.local/
